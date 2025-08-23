@@ -1,0 +1,3 @@
+customerID,gender,SeniorCitizen,Partner,Dependents,tenure,PhoneService,MultipleLines,InternetService,Contract,PaperlessBilling,PaymentMethod,MonthlyCharges,TotalCharges
+12345,Male,0,Yes,No,24,Yes,No,DSL,One year,Yes,Electronic check,65.5,1572.0
+67890,Female,1,No,Yes,5,Yes,Yes,Fiber optic,Month-to-month,No,Credit card (automatic),89.3,446.5

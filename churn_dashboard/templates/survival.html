@@ -1,0 +1,556 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Active Page Identifier -->
+    <div id="activePage" data-page="survival" style="display:none;"></div>
+
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-shield text-primary me-2"></i>Customer Retention Analysis
+        </h1>
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="timeRangeDropdown" data-bs-toggle="dropdown">
+                <i class="fas fa-calendar-alt me-1"></i> Time Range
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item time-range" href="#" data-range="12">12 Months</a>
+                <a class="dropdown-item time-range" href="#" data-range="24">24 Months</a>
+                <a class="dropdown-item time-range" href="#" data-range="36">36 Months</a>
+                <a class="dropdown-item time-range" href="#" data-range="full">Full Range</a>
+            </div>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% else %}
+    
+    <!-- Key Metrics Cards -->
+    <div class="row mb-4">
+        <!-- 12-Month Survival -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow-sm h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                12-Month Survival
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "%.1f"|format(business_insights.twelve_month_survival) }}%
+                            </div>
+                        </div>
+                        <i class="fas fa-chart-line fa-lg text-gray-300"></i>
+                    </div>
+                    <div class="mt-2 small text-muted cursor-pointer" data-bs-toggle="tooltip" title="Percentage of customers who remain after 1 year">
+                        <i class="fas fa-info-circle me-1"></i> Annual retention rate
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 12-Month Hazard -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow-sm h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                12-Month Hazard
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "%.1f"|format(business_insights.twelve_month_hazard) }}%
+                            </div>
+                        </div>
+                        <i class="fas fa-exclamation-circle fa-lg text-gray-300"></i>
+                    </div>
+                    <div class="mt-2 small text-muted cursor-pointer" data-bs-toggle="tooltip" title="Cumulative risk of churn after 1 year">
+                        <i class="fas fa-info-circle me-1"></i> Churn risk
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Critical Customers -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow-sm h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Critical Customers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "{:,}".format(business_insights.intervention_points.immediate) }}
+                            </div>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-lg text-gray-300"></i>
+                    </div>
+                    <div class="mt-2 small text-muted cursor-pointer" data-bs-toggle="tooltip" 
+                         title="Customers with highest risk of churn (0-3 months)">
+                        <i class="fas fa-users me-1"></i> {{ "%.1f"|format(business_insights.intervention_points.immediate/total_customers*100) }}% of base
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stable Customers -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow-sm h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Stable Customers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "{:,}".format(business_insights.intervention_points.watch) }}
+                            </div>
+                        </div>
+                        <i class="fas fa-check-circle fa-lg text-gray-300"></i>
+                    </div>
+                    <div class="mt-2 small text-muted cursor-pointer" data-bs-toggle="tooltip" title="Customers with low risk of churn (6+ months)">
+                        <i class="fas fa-lock me-1"></i> {{ "%.1f"|format(business_insights.intervention_points.watch/total_customers*100) }}% of base
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Survival Curve Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Customer Survival Curve</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-right shadow-sm">
+                    <li><a class="dropdown-item" href="#" id="toggleConfidence"><i class="fas fa-eye me-2"></i>Toggle Confidence</a></li>
+                    <li><a class="dropdown-item" href="#" id="showMilestones"><i class="fas fa-map-marker-alt me-2"></i>Toggle Milestones</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" id="downloadChart"><i class="fas fa-download me-2"></i>Download</a></li>
+                    <li><a class="dropdown-item" href="#" id="zoomDefault"><i class="fas fa-expand me-2"></i>Reset Zoom</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="survivalChart" style="height: 400px;"></div>
+            <!-- Interactive Hover Box -->
+            <div id="survivalHoverInfo" class="mt-2 p-2 bg-light rounded" style="display: none; border-left: 3px solid #4e73df;">
+                <div class="d-flex justify-content-between">
+                    <span class="font-weight-bold">Month: <span id="hoverMonth">-</span></span>
+                    <span>Survival: <span id="hoverSurvival">-</span></span>
+                </div>
+                <div id="hoverCI" class="small text-muted mt-1" style="display: none;">
+                    Confidence: <span id="hoverCIValue">-</span>
+                </div>
+            </div>
+            <div class="mt-2 small text-muted d-flex justify-content-between">
+                <span>
+                    <i class="fas fa-info-circle me-1"></i>
+                    Hover for details, drag to zoom, double-click to reset
+                </span>
+                <span id="currentZoom" class="badge bg-light text-dark">Viewing: Full range</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Distribution Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Customer Risk Distribution</h6>
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-secondary active" data-view="count">Count</button>
+                <button type="button" class="btn btn-outline-secondary" data-view="percentage">Percentage</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <div id="riskChart" style="height: 300px;"></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="alert alert-light">
+                        <h5 class="alert-heading">Risk Categories</h5>
+                        <hr>
+                        <p><span class="badge bg-danger me-2"></span> <strong>Critical (0-3mo):</strong> Highest risk of churn</p>
+                        <p><span class="badge bg-warning me-2"></span> <strong>Urgent (3-6mo):</strong> Moderate risk of churn</p>
+                        <p><span class="badge bg-success me-2"></span> <strong>Stable (6+mo):</strong> Lowest risk of churn</p>
+                        <hr>
+                        <div class="d-flex justify-content-between small">
+                            <span>Total Customers:</span>
+                            <strong>{{ "{:,}".format(total_customers) }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Business Insight Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-light">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-lightbulb me-2"></i>Key Business Insight
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                {{ business_insights.business_insight }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- JavaScript -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+// Initialize data
+const survivalData = {{ survival_curves|tojson|safe }};
+const businessInsights = {{ business_insights|tojson|safe }};
+const totalCustomers = {{ total_customers }};
+let currentTimeRange = 'full';
+let showConfidence = false;
+let showMilestones = false;
+
+// Set active tab in sidebar
+function setActiveTab() {
+    const activePage = document.getElementById('activePage').dataset.page;
+    document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.getAttribute('href') && link.getAttribute('href').includes(activePage)) {
+            link.classList.add('active');
+            // Update icon to show active state
+            const icon = link.querySelector('i');
+            if (icon) {
+                icon.classList.remove('fa-user-shield');
+                icon.classList.add('fa-user-shield', 'text-primary');
+            }
+            // Highlight parent nav-item
+            if (link.closest('.nav-item')) {
+                link.closest('.nav-item').classList.add('active');
+            }
+        } else {
+            link.classList.remove('active');
+        }
+    });
+}
+
+// Enhanced hover interactions
+function setupHover() {
+    const hoverInfo = document.getElementById('survivalHoverInfo');
+    const chart = document.getElementById('survivalChart');
+    
+    chart.on('plotly_hover', function(data) {
+        if (data.points && data.points[0]) {
+            const pt = data.points[0];
+            document.getElementById('hoverMonth').textContent = pt.x;
+            document.getElementById('hoverSurvival').textContent = (pt.y * 100).toFixed(1) + '%';
+            
+            if (showConfidence) {
+                const idx = survivalData.time_points.indexOf(pt.x);
+                if (idx >= 0) {
+                    const lower = (survivalData.quartiles.q25[idx] * 100).toFixed(1);
+                    const upper = (survivalData.quartiles.q75[idx] * 100).toFixed(1);
+                    document.getElementById('hoverCIValue').textContent = `${lower}% to ${upper}%`;
+                    document.getElementById('hoverCI').style.display = 'block';
+                }
+            }
+            hoverInfo.style.display = 'block';
+        }
+    });
+    
+    chart.on('plotly_unhover', function() {
+        hoverInfo.style.display = 'none';
+    });
+}
+
+// Draw survival chart with all interactive elements
+function drawSurvivalChart() {
+    if (!survivalData.time_points || survivalData.time_points.length === 0) {
+        document.getElementById('survivalChart').innerHTML = 
+            '<div class="alert alert-warning">No survival data available</div>';
+        return;
+    }
+
+    const maxTime = Math.max(...survivalData.time_points);
+    const xRange = currentTimeRange === 'full' ? [0, maxTime] : [0, Math.min(parseInt(currentTimeRange), maxTime)];
+
+    // Create traces
+    const traces = [
+        {
+            x: survivalData.time_points,
+            y: survivalData.survival_probability,
+            name: 'Survival Probability',
+            mode: 'lines',
+            line: {color: '#4e73df', width: 3},
+            hovertemplate: '<b>Month %{x}</b><br>%{y:.1%} survival<extra></extra>'
+        },
+        {
+            x: survivalData.time_points,
+            y: survivalData.quartiles.q75,
+            name: 'Upper CI',
+            mode: 'lines',
+            line: {color: '#858796', width: 1, dash: 'dot'},
+            fill: 'tonexty',
+            fillcolor: 'rgba(78, 115, 223, 0.1)',
+            visible: showConfidence
+        },
+        {
+            x: survivalData.time_points,
+            y: survivalData.quartiles.q25,
+            name: 'Lower CI',
+            mode: 'lines',
+            line: {color: '#858796', width: 1, dash: 'dot'},
+            visible: showConfidence
+        }
+    ];
+
+    // Median survival marker
+    const medianSurvival = businessInsights.median_survival;
+    const medianY = survivalData.survival_probability[survivalData.time_points.findIndex(t => t >= medianSurvival)] || 0.5;
+
+    // Milestones if enabled
+    const milestones = [];
+    if (showMilestones) {
+        Object.values(survivalData.milestones).forEach(milestone => {
+            if (milestone.value > 0) {
+                milestones.push({
+                    x: milestone.value,
+                    y: 0.95,
+                    text: milestone.text,
+                    showarrow: false,
+                    xanchor: 'center',
+                    yanchor: 'bottom',
+                    bgcolor: 'rgba(255,255,255,0.8)',
+                    bordercolor: '#ddd',
+                    borderwidth: 1
+                });
+                milestones.push({
+                    x: milestone.value,
+                    y: 0,
+                    yref: 'paper',
+                    ysizemode: 'pixel',
+                    ysize: 380,
+                    line: {color: '#ddd', width: 1, dash: 'dot'}
+                });
+            }
+        });
+    }
+
+    // Layout configuration
+    const layout = {
+        title: 'Customer Survival Probability Over Time',
+        xaxis: {
+            title: 'Months',
+            range: xRange,
+            fixedrange: false
+        },
+        yaxis: {
+            title: 'Survival Probability',
+            range: [0, 1],
+            tickformat: ',.0%',
+            fixedrange: false
+        },
+        margin: {t: 40, l: 50, r: 30, b: 50},
+        hovermode: 'x unified',
+        shapes: [
+            {
+                type: 'line',
+                x0: medianSurvival,
+                x1: medianSurvival,
+                y0: 0,
+                y1: 1,
+                line: {color: '#e74a3b', width: 1.5, dash: 'dot'}
+            }
+        ],
+        annotations: [
+            {
+                x: medianSurvival,
+                y: medianY,
+                text: `Median: ${medianSurvival.toFixed(1)} months`,
+                showarrow: true,
+                arrowhead: 1,
+                ax: 0,
+                ay: -40,
+                bgcolor: 'white',
+                bordercolor: '#e74a3b'
+            },
+            ...milestones
+        ]
+    };
+
+    // Plot configuration
+    const config = {
+        responsive: true,
+        displayModeBar: true,
+        scrollZoom: true,
+        modeBarButtonsToRemove: ['toImage', 'sendDataToCloud']
+    };
+
+    Plotly.react('survivalChart', traces, layout, config);
+    updateZoomDisplay(xRange[1]);
+}
+
+// Draw risk distribution chart
+function drawRiskChart(view='count') {
+    const immediate = businessInsights.intervention_points.immediate;
+    const urgent = businessInsights.intervention_points.urgent;
+    const watch = businessInsights.intervention_points.watch;
+    const total = immediate + urgent + watch;
+
+    const data = [{
+        values: view === 'count' ? 
+            [immediate, urgent, watch] : 
+            [immediate/total*100, urgent/total*100, watch/total*100],
+        labels: ['Critical (0-3mo)', 'Urgent (3-6mo)', 'Stable (6+mo)'],
+        marker: {colors: ['#e74a3b', '#f6c23e', '#1cc88a']},
+        type: 'pie',
+        hole: 0.3,
+        textinfo: view === 'count' ? 'value+percent' : 'percent',
+        hoverinfo: 'label+percent+value',
+        textposition: 'inside'
+    }];
+
+    Plotly.react('riskChart', data, {
+        margin: {t: 0, l: 0, r: 0, b: 0},
+        showlegend: false
+    });
+}
+
+// Update zoom display text
+function updateZoomDisplay(maxMonths) {
+    const displayText = currentTimeRange === 'full' ? 
+        `Viewing: Full range (0-${maxMonths} months)` :
+        `Viewing: 0-${maxMonths} months`;
+    document.getElementById('currentZoom').textContent = displayText;
+}
+
+// Toggle milestones visibility
+function toggleMilestones() {
+    showMilestones = !showMilestones;
+    document.getElementById('showMilestones').classList.toggle('active');
+    drawSurvivalChart();
+}
+
+// Initialize everything
+document.addEventListener('DOMContentLoaded', function() {
+    // Set active tab
+    setActiveTab();
+    
+    // Initial draws
+    drawSurvivalChart();
+    drawRiskChart();
+    
+    // Setup hover interactions
+    setupHover();
+    
+    // Event listeners
+    document.getElementById('toggleConfidence').addEventListener('click', function(e) {
+        e.preventDefault();
+        showConfidence = !showConfidence;
+        document.getElementById('hoverCI').style.display = showConfidence ? 'block' : 'none';
+        drawSurvivalChart();
+    });
+
+    document.getElementById('showMilestones').addEventListener('click', function(e) {
+        e.preventDefault();
+        toggleMilestones();
+    });
+
+    document.getElementById('zoomDefault').addEventListener('click', function(e) {
+        e.preventDefault();
+        currentTimeRange = 'full';
+        drawSurvivalChart();
+    });
+
+    document.getElementById('downloadChart').addEventListener('click', function(e) {
+        e.preventDefault();
+        Plotly.download('survivalChart', {
+            filename: 'customer-survival-curve',
+            format: 'png',
+            height: 600,
+            width: 800
+        });
+    });
+
+    // Time range selector
+    document.querySelectorAll('.time-range').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            currentTimeRange = this.dataset.range;
+            drawSurvivalChart();
+        });
+    });
+
+    // Risk view toggle
+    document.querySelectorAll('[data-view]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            drawRiskChart(this.dataset.view);
+        });
+    });
+
+    // Double-click to reset zoom
+    document.getElementById('survivalChart').on('plotly_doubleclick', function() {
+        currentTimeRange = 'full';
+        drawSurvivalChart();
+    });
+
+    // Update display on zoom/pan
+    document.getElementById('survivalChart').on('plotly_relayout', function(event) {
+        if (event['xaxis.range[1]']) {
+            currentTimeRange = 'custom';
+            updateZoomDisplay(Math.round(event['xaxis.range[1]']));
+        }
+    });
+
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+});
+</script>
+{% block styles %}
+<style>
+
+
+/* Hover info box */
+#survivalHoverInfo {
+    transition: all 0.2s ease;
+    box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.05);
+}
+
+/* Plotly chart improvements */
+.js-plotly-plot .plotly .modebar {
+    background: rgba(255,255,255,0.7) !important;
+    border-radius: 4px;
+    padding: 2px;
+}
+.js-plotly-plot .plotly .modebar-btn:hover {
+    background-color: rgba(0,0,0,0.1) !important;
+}
+
+/* Dropdown menu styling */
+  .dropdown-menu {
+    font-size: 0.85rem;
+   }
+.dropdown-item {
+    padding: 0.25rem 1rem;
+}
+.dropdown-item i {
+    width: 18px;
+    text-align: center;
+    margin-right: 5px;
+}
+</style>
+
+{% endblock %}
+{% endblock %}

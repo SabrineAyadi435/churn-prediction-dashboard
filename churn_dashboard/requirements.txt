@@ -1,0 +1,6 @@
+flask>=2.0
+pandas
+scikit-learn
+joblib
+plotly
+openpyxl

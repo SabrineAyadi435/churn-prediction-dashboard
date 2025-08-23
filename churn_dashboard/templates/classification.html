@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    /* Light Theme Variables */
+    :root {
+        --primary: #4e73df;
+        --secondary: #858796;
+        --success: #1cc88a;
+        --info: #36b9cc;
+        --warning: #f6c23e;
+        --danger: #e74a3b;
+        --light: #f8f9fc;
+        --dark: #5a5c69;
+        --card-bg: #ffffff;
+        --card-border: #e3e6f0;
+        --text-primary: #5a5c69;
+        --text-secondary: #858796;
+    }
+
+    /* Base Card Styling */
+    .card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 0.35rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background: var(--light);
+        border-bottom: 1px solid var(--card-border);
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    /* Metric Cards */
+    .metric-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 0.35rem;
+        transition: all 0.3s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+
+    /* List Group Items */
+    .list-group-item {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        color: var(--text-primary);
+    }
+
+    /* Badges & Progress Bars */
+    .badge-risk {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .progress-thin {
+        height: 24px;
+        border-radius: 12px;
+        background: #eaecf4;
+    }
+
+    .progress-bar {
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Chart Containers */
+    .chart-container {
+        height: 400px;
+        width: 100%;
+        background: var(--card-bg);
+        border-radius: 0.35rem;
+        padding: 10px;
+    }
+
+    /* Text Styles */
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--dark);
+        font-weight: 600;
+    }
+
+    .text-muted {
+        color: var(--secondary) !important;
+    }
+
+    hr {
+        border-color: var(--card-border);
+    }
+
+    /* Header Styles */
+    .page-header {
+        border-bottom: 1px solid var(--card-border);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .chart-container {
+            height: 300px;
+        }
+    }
+</style>
+{% endblock %}
+
+<div class="container-fluid px-4">
+    <!-- Classification Insights Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 page-header py-3">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-project-diagram text-primary me-2"></i>Classification Insights
+        </h1>
+    </div>
+
+    <!-- Key Insights Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0 text-primary">
+                <i class="fas fa-lightbulb text-primary me-2"></i>Executive Summary
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if details.business_insights %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card metric-card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0"><i class="fas fa-bullseye me-2"></i>Top Churn Drivers</h6>
+                        </div>
+                        <div class="card-body">
+                            <ol class="list-group list-group-flush">
+                                {% for feature, importance in details.business_insights.top_churn_drivers %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">{{ feature.replace('_', ' ')|title }}</div>
+                                        {% if "Contract" in feature %}
+                                        <small class="text-muted">Offer loyalty incentives</small>
+                                        {% elif "Internet" in feature %}
+                                        <small class="text-muted">Improve service quality</small>
+                                        {% endif %}
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">{{ "%.1f"|format(importance*100) }}%</span>
+                                </li>
+                                {% endfor %}
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card metric-card mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>High-Risk Profile</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <div class="small text-muted">Avg. Tenure</div>
+                                        <div class="h5">{{ "%.1f"|format(details.business_insights.high_risk_profile.avg_tenure) }}mo</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="small text-muted">Avg. Monthly Spend</div>
+                                        <div class="h5">${{ "%.2f"|format(details.business_insights.high_risk_profile.avg_charge) }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <div class="small text-muted">Internet Service</div>
+                                        <div class="h5">{{ details.business_insights.high_risk_profile.common_services.internet }}</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="small text-muted">Contract Type</div>
+                                        <div class="h5">{{ details.business_insights.high_risk_profile.common_services.contract }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-dollar-sign fa-2x text-danger me-3"></i>
+                                <div>
+                                    <div class="small text-muted">Revenue at Risk</div>
+                                    <div class="h4 text-danger">${{ "%.2f"|format(details.business_insights.revenue_at_risk) }}/mo</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Interactive Visualizations -->
+    <div class="row mb-4">
+        <!-- Risk Group Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Customer Risk Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <div id="riskGroupChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Monthly Charges by Risk -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Average Monthly Charges</h6>
+                </div>
+                <div class="card-body">
+                    <div id="monthlyChargesChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Service Distribution -->
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-server me-2"></i>Internet Service Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <div id="serviceDistributionChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Features -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-list-ol me-2"></i>Top Predictive Features</h6>
+                </div>
+                <div class="card-body">
+                    <div id="featureImportanceChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classification Insights Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0 text-primary">
+                <i class="fas fa-lightbulb text-primary me-2"></i>Classification Insights
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0 text-info me-3">
+                            <i class="fas fa-bullseye fa-lg"></i>
+                        </div>
+                        <div>
+                            <h6 class="font-weight-bold mb-1">Key Predictors</h6>
+                            <p class="text-muted small mb-0">Contract type and monthly charges are the strongest predictors of churn.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0 text-warning me-3">
+                            <i class="fas fa-user-shield fa-lg"></i>
+                        </div>
+                        <div>
+                            <h6 class="font-weight-bold mb-1">Protect High Value</h6>
+                            <p class="text-muted small mb-0">Customers with >$75 MRR have 3x higher retention when on annual contracts.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Plotly JS -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<script>
+// Risk Group Distribution Pie Chart
+const riskGroupData = [{
+    values: {{ details.risk_groups.values()|list|tojson }},
+    labels: {{ details.risk_groups.keys()|list|tojson }},
+    type: 'pie',
+    marker: {
+        colors: ['#1cc88a', '#f6c23e', '#e74a3b']
+    },
+    textinfo: 'percent+value',
+    hoverinfo: 'label+percent+value',
+    hole: .3
+}];
+
+const riskGroupLayout = {
+    margin: {t: 30, b: 30},
+    showlegend: true
+};
+
+Plotly.newPlot('riskGroupChart', riskGroupData, riskGroupLayout);
+
+// Monthly Charges Bar Chart
+const monthlyChargesData = [{
+    x: {{ details.business_insights.plotly_data.monthly_charges|map(attribute='risk_group')|list|tojson }},
+    y: {{ details.business_insights.plotly_data.monthly_charges|map(attribute='MonthlyCharges')|list|tojson }},
+    type: 'bar',
+    marker: {
+        color: ['#e74a3b','#1cc88a', '#f6c23e']
+    }
+}];
+
+const monthlyChargesLayout = {
+    margin: {t: 30, b: 30},
+    yaxis: {
+        title: 'Monthly Charges ($)'
+    }
+};
+
+Plotly.newPlot('monthlyChargesChart', monthlyChargesData, monthlyChargesLayout);
+
+// Service Distribution Stacked Bar Chart
+const serviceData = [
+    {% for service in details.business_insights.plotly_data.service_distribution.0.keys()|reject('eq', 'risk_group') %}
+    {
+        x: {{ details.business_insights.plotly_data.service_distribution|map(attribute='risk_group')|list|tojson }},
+        y: {{ details.business_insights.plotly_data.service_distribution|map(attribute=service)|list|tojson }},
+        name: '{{ service }}',
+        type: 'bar'
+    },
+    {% endfor %}
+];
+
+const serviceLayout = {
+    margin: {t: 30, b: 30},
+    barmode: 'stack',
+    yaxis: {
+        title: 'Number of Customers'
+    }
+};
+
+Plotly.newPlot('serviceDistributionChart', serviceData, serviceLayout);
+
+// Feature Importance Horizontal Bar Chart
+const featureData = [{
+    y: {{ details.business_insights.plotly_data.top_features|map(attribute='feature')|list|tojson }},
+    x: {{ details.business_insights.plotly_data.top_features|map(attribute='importance')|list|tojson }},
+    type: 'bar',
+    orientation: 'h',
+    marker: {
+        color: 'rgba(78, 115, 223, 0.7)'
+    }
+}];
+
+const featureLayout = {
+    margin: {t: 30, b: 30, l: 150},
+    xaxis: {
+        title: 'Feature Importance'
+    }
+};
+
+Plotly.newPlot('featureImportanceChart', featureData, featureLayout);
+</script>
+{% endblock %}

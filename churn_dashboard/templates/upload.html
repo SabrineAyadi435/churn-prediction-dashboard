@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="upload-page">
+    <div class="upload-container">
+        <div class="upload-card">
+            <div class="upload-header">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>Retention Intelligence</h3>
+                <p>Upload customer data for advanced churn analysis</p>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload') }}" id="uploadForm">
+                <div class="drop-zone" id="dropZone">
+                    <input type="file" id="fileInput" name="file" accept=".csv" class="hidden">
+                    <div class="file-preview" id="filePreview">
+                        <i class="fas fa-file-csv"></i>
+                        <div class="file-info">
+                            <span id="fileName">No file selected</span>
+                            <span id="fileSize"></span>
+                        </div>
+                    </div>
+                    <div class="upload-options" id="uploadOptions">
+                        <button type="button" id="browseBtn" class="browse-btn">
+                            <i class="fas fa-folder-open"></i> Browse Files
+                        </button>
+                        <div class="divider">
+                            <span class="line"></span>
+                            <span class="text">or</span>
+                            <span class="line"></span>
+                        </div>
+                        <p>Drag & drop file here</p>
+                    </div>
+                </div>
+
+                <div class="upload-footer">
+                    <button type="submit" id="uploadBtn" class="submit-btn" disabled>
+                        <span class="btn-text">Analyze Data</span>
+                        <i class="fas fa-circle-notch fa-spin spinner"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="requirements">
+                <div class="accordion">
+                    <button class="accordion-btn">
+                        <span>File Requirements</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <ul>
+                            <li><i class="fas fa-check-circle"></i> CSV format (UTF-8 encoded)</li>
+                            <li><i class="fas fa-check-circle"></i> Maximum size: 25MB</li>
+                            <li><i class="fas fa-check-circle"></i> Required columns: CustomerID, Tenure, MonthlyCharges</li>
+                            <li><i class="fas fa-check-circle"></i> Data should cover at least 3 months</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elements
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const browseBtn = document.getElementById('browseBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const filePreview = document.getElementById('filePreview');
+    const uploadOptions = document.getElementById('uploadOptions');
+    const accordionBtn = document.querySelector('.accordion-btn');
+    const accordionContent = document.querySelector('.accordion-content');
+    const spinner = document.querySelector('.spinner');
+
+    // Initialize
+    spinner.style.display = 'none';
+    accordionContent.style.display = 'none';
+    filePreview.style.display = 'none';
+
+    // File selection
+    browseBtn.addEventListener('click', function() {
+        fileInput.value = '';
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files.length) {
+            handleFile(fileInput.files[0]);
+        }
+    });
+
+    // Drag and drop
+    ['dragenter', 'dragover'].forEach(event => {
+        dropZone.addEventListener(event, function(e) {
+            e.preventDefault();
+            dropZone.classList.add('dragging');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(event => {
+        dropZone.addEventListener(event, function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('dragging');
+        });
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            fileInput.files = e.dataTransfer.files;
+            handleFile(file);
+        }
+    });
+
+    // Accordion toggle
+    accordionBtn.addEventListener('click', function() {
+        const isOpen = accordionContent.style.display === 'block';
+        accordionContent.style.display = isOpen ? 'none' : 'block';
+        accordionBtn.querySelector('i').classList.toggle('rotate');
+    });
+
+    // Form submission
+    uploadForm.addEventListener('submit', function(e) {
+        if (!fileInput.files.length) {
+            e.preventDefault();
+            return;
+        }
+        
+        // Show loading state
+        uploadBtn.disabled = true;
+        uploadBtn.querySelector('.btn-text').style.display = 'none';
+        spinner.style.display = 'inline-block';
+    });
+
+    // Handle file selection
+    function handleFile(file) {
+        if (!file.name.endsWith('.csv')) {
+            alert('Please select a CSV file');
+            return;
+        }
+
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        filePreview.style.display = 'flex';
+        uploadOptions.style.display = 'none';
+        uploadBtn.disabled = false;
+    }
+
+    // Format file size
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const units = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + units[i];
+    }
+});
+</script>
+
+<style>
+:root {
+    --primary: #4361ee;
+    --primary-light: rgba(67, 97, 238, 0.1);
+    --primary-dark: #3a56d4;
+    --success: #4cc9f0;
+    --text-dark: #2b2d42;
+    --text-light: #8d99ae;
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+}
+
+/* Base Layout */
+.upload-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.upload-container {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.upload-card {
+    width: 100%;
+    padding: 2rem;
+    border-radius: 16px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow);
+}
+
+/* Upload Header */
+.upload-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.upload-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-radius: 50%;
+    color: white;
+    font-size: 2rem;
+    box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
+}
+
+.upload-header h2 {
+    color: var(--text-dark);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.upload-header p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Drop Zone */
+.drop-zone {
+    border: 2px dashed rgba(67, 97, 238, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 1.5rem;
+}
+
+.drop-zone.dragging {
+    border-color: var(--primary);
+    background-color: var(--primary-light);
+}
+
+.hidden {
+    display: none;
+}
+
+/* File Preview */
+.file-preview {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.file-preview i {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 0.8rem;
+}
+
+.file-info {
+    text-align: center;
+}
+
+.file-info span {
+    display: block;
+}
+
+#fileName {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.2rem;
+    font-size: 1rem;
+}
+
+#fileSize {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+/* Upload Options */
+.upload-options {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.browse-btn {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.browse-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(67, 97, 238, 0.3);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 0.8rem 0;
+}
+
+.divider .line {
+    flex: 1;
+    height: 1px;
+    background-color: rgba(67, 97, 238, 0.2);
+}
+
+.divider .text {
+    padding: 0 0.8rem;
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
+.upload-options p {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* Upload Footer */
+.upload-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+    min-width: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    font-size: 0.95rem;
+}
+
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(67, 97, 238, 0.3);
+}
+
+.submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.spinner {
+    display: none;
+    font-size: 1rem;
+}
+
+/* Requirements */
+.requirements {
+    margin-top: 2rem;
+}
+
+.accordion {
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.accordion-btn {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+}
+
+.accordion-btn:hover {
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+.accordion-btn i {
+    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+}
+
+.accordion-btn i.rotate {
+    transform: rotate(180deg);
+}
+
+.accordion-content {
+    padding: 0 1.5rem;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.accordion-content ul {
+    list-style: none;
+    padding: 0 0 1rem 0;
+    margin: 0;
+}
+
+.accordion-content li {
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.accordion-content li i {
+    color: var(--success);
+    font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .upload-card {
+        padding: 1.5rem;
+    }
+    
+    .upload-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.8rem;
+    }
+    
+    .upload-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .drop-zone {
+        padding: 1.2rem;
+    }
+    
+    .browse-btn, .submit-btn {
+        padding: 0.7rem 1.3rem;
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %}

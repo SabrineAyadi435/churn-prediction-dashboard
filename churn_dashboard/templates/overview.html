@@ -1,0 +1,731 @@
+{% extends "base.html" %}
+
+{% block title %}Executive Overview - RetainLY{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Dashboard Header with underline -->
+    <div class="dashboard-header">
+        <h2><i class="fas fa-chart-network"></i> Executive Overview</h2>
+        <div class="header-divider"></div>
+    </div>
+
+    <!-- 1. Headline Metrics -->
+    <div class="section-container">
+        <div class="section-header">
+            <h4><i class="fas fa-chart-line"></i> Performance Summary</h4>
+        </div>
+        <div class="metrics-grid">
+            <!-- Metric 1 -->
+            <div class="metric-card glass-panel hover-effect">
+                <div class="metric-header">
+                    <div class="metric-title-container">
+                        <h3>Churn Rate</h3>
+                        <div class="metric-subtitle">{{  "%.1f"|format (metrics.current_churn_rate) }}%</div>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-labels">
+                        <span>0%</span>
+                        <span>Industry: 20-30%</span>
+                        <span>50%</span>
+                    </div>
+                    <div class="progress-bar">
+                       <div class="progress-fill" style="width: {{ metrics.current_churn_rate }}%; background-color: {{ '#ef4444' if metrics.current_churn_rate|float > 25 else ('#f59e0b' if metrics.current_churn_rate|float > 20 else '#10b981') }};"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric 2 -->
+            <div class="metric-card glass-panel hover-effect">
+                <div class="metric-header">
+                    <div class="metric-title-container">
+                        <h3>Revenue at Risk</h3>
+                        <div class="metric-subtitle">${{ "{:,.0f}".format(metrics.revenue_at_risk/1000) }}K</div>
+                    </div>
+                </div>
+                <div class="metric-comparison">
+                    <div class="comparison-item">
+                        <span class="comparison-label">vs Total ARR</span>
+                        <span class="comparison-value">{{ "%.1f"|format((metrics.revenue_at_risk / metrics.total_arr) * 100) if metrics.total_arr > 0 else 0 }}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric 3 -->
+            <div class="metric-card glass-panel hover-effect">
+                <div class="metric-header">
+                    <div class="metric-title-container">
+                        <h3>Avg. Lifetime</h3>
+                        <div class="metric-subtitle">{{ metrics.avg_lifetime }} months</div>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-labels">
+                        <span>0</span>
+                        <span>Target: 24mo ({{ 24 - metrics.avg_lifetime }}mo gap)</span>
+                        <span>24</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:{{ (metrics.avg_lifetime / 24) * 100 }}%; background-color: {{ '#10b981' if metrics.avg_lifetime|float > 20 else ('#f59e0b' if metrics.avg_lifetime|float > 15 else '#ef4444') }};"></div>
+                    </div>
+
+                </div>
+            
+            </div>
+
+            <!-- Replace the At-Risk Customers metric card with this -->
+            <div class="metric-card glass-panel hover-effect">
+                <div class="metric-header">
+                    <div class="metric-title-container">
+                        <h3>At-Risk Customers</h3>
+                        <div class="metric-subtitle">{{ metrics.at_risk_customers }} of {{ metrics.total_customers }}</div>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-percentage">
+                       {{ "%.1f"|format((metrics.at_risk_customers / metrics.total_customers) * 100) }}% at risk
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" 
+                            style="width: {{ (metrics.at_risk_customers / metrics.total_customers) * 100 }}%; background-color: {{ '#ef4444' if (metrics.at_risk_customers / metrics.total_customers) * 100 > 50 else ('#f59e0b' if (metrics.at_risk_customers / metrics.total_customers) * 100 > 30 else '#10b981') }};">
+                        </div>
+                    </div>
+                    <div class="progress-labels">
+                      <span>0%</span>
+                      <span>Healthy: &lt;30%</span>
+                      <span>100%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <!-- 4. Key Insights -->
+    <div class="section-container">
+        <div class="section-header">
+            <h4><i class="fas fa-brain"></i> Key Insights</h4>
+        </div>
+        <div class="insights-grid">
+            <!-- Insight 1 -->
+            <div class="insight-card glass-panel hover-effect">
+                <div class="insight-badge critical">
+                    <i class="fas fa-exclamation-triangle"></i> Critical
+                </div>
+                <h4>Contract Type Risk</h4>
+                <p class="insight-text">
+                    Month-to-month customers survive only {{ insights.month_to_month_survival }} months on average
+                </p>
+            </div>
+
+            <!-- Insight 2 -->
+            <div class="insight-card glass-panel hover-effect">
+                <div class="insight-badge high">
+                    <i class="fas fa-exclamation-circle"></i> High
+                </div>
+                <h4>Payment Method Impact</h4>
+                <p class="insight-text">
+                    E-check users have {{ "%.1f"|format(insights.echeck_churn_prob) }}% churn rate
+                </p>
+            </div>
+
+            <!-- Insight 3 -->
+            <div class="insight-card glass-panel hover-effect">
+                <div class="insight-badge medium">
+                    <i class="fas fa-info-circle"></i> Medium
+                </div>
+                <h4>Service Type Variance</h4>
+                <p class="insight-text">
+                    Fiber customers churn {{ insights.fiber_vs_dsl_diff }}% more than DSL
+                </p>
+            </div>
+        </div>
+    </div>
+    <!-- 2. Action Areas -->
+    <div class="section-container">
+        <div class="section-header">
+            <h4><i class="fas fa-crosshairs"></i> Priority Actions</h4>
+        </div>
+        <div class="action-grid">
+            <!-- Action 1 -->
+            <div class="action-card glass-panel hover-effect">
+                <div class="action-priority urgent">Urgent</div>
+                <div class="action-content">
+                    <div class="action-icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <h4>Contract Conversions</h4>
+                    <p class="action-text">
+                        {{ focus.month_to_month_at_risk }} month-to-month customers at high risk
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Action 2 -->
+            <div class="action-card glass-panel hover-effect">
+                <div class="action-priority high">High</div>
+                <div class="action-content">
+                    <div class="action-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h4>Payment Migration</h4>
+                    <p class="action-text">
+                        {{ focus.echeck_customers }} e-check users with high churn rate
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Action 3 -->
+            <div class="action-card glass-panel hover-effect">
+                <div class="action-priority medium">Medium</div>
+                <div class="action-content">
+                    <div class="action-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h4>Early Tenure</h4>
+                    <p class="action-text">
+                        {{ focus.early_dropoff_rate }}% drop-off rate in first 6 months
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Business Impact -->
+    <div class="section-container">
+        <div class="section-header">
+            <h4><i class="fas fa-dollar-sign"></i> Business Impact</h4>
+        </div>
+        <div class="impact-grid">
+            <div class="impact-card negative">
+                <div class="impact-icon">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
+                <div class="impact-content">
+                    <h5>Projected Loss</h5>
+                    <div class="impact-value">${{ "{:,.0f}".format(impact.projected_loss/1000) }}K</div>
+                    <p>Without intervention</p>
+                </div>
+            </div>
+            
+            <div class="impact-card positive">
+                <div class="impact-icon">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+                <div class="impact-content">
+                    <h5>Savings Potential</h5>
+                    <div class="impact-value">${{ "{:,.0f}".format(impact.savings_potential/1000) }}K</div>
+                    <p>With recommended actions</p>
+                </div>
+            </div>
+            
+            <div class="impact-card neutral">
+                <div class="impact-icon">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <div class="impact-content">
+                    <h5>Net Impact</h5>
+                    <div class="impact-value">${{ "{:,.0f}".format((impact.savings_potential-impact.projected_loss)/1000) }}K</div>
+                    <p>Potential improvement</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    /* Base Styles */
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --info-color: #3b82f6;
+        --dark-color: #1a1a1a;
+        --light-color: #f8f9fa;
+        --border-radius: 8px;
+        --box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --transition: all 0.3s ease;
+        --card-border: #e5e7eb;
+    }
+    
+    /* Typography */
+    h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+    }
+    
+    h3 {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #6b7280;
+        margin: 0 0 0.25rem 0;
+    }
+    
+    h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    h5 {
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin: 0 0 0.25rem 0;
+    }
+    
+    /* Dashboard Container */
+    .dashboard-container {
+        padding: 1rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    /* Dashboard Header */
+    .dashboard-header {
+        padding: 0 0 1rem 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    .header-divider {
+        height: 1px;
+        background: var(--card-border);
+        margin-top: 0.5rem;
+    }
+    
+    /* Section Containers */
+    .section-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    /* Section Headers */
+    .section-header {
+        padding: 0.5rem 0;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid var(--card-border);
+    }
+    
+    .section-header h4 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #4b5563;
+    }
+    
+    /* Metrics Grid */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+
+    /* Metric Cards */
+    .metric-card {
+        padding: 1rem;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+    }
+    
+    .metric-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-subtitle {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+    
+    .progress-bar-container {
+        margin-top: 0.75rem;
+    }
+    
+    .progress-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.7rem;
+        color: #9ca3af;
+        margin-bottom: 0.25rem;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 6px;
+        background: #f3f4f6;
+        border-radius: 3px;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.6s ease;
+    }
+    
+    .metric-comparison {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+    }
+    
+    .comparison-item {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .comparison-label {
+        font-size: 0.7rem;
+        color: #9ca3af;
+    }
+    
+    .comparison-value {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: 0.1rem;
+    }
+
+    /* Action Areas */
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+    
+    .action-card {
+        padding: 1rem;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+        position: relative;
+    }
+    
+    .action-priority {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 8px;
+    }
+    
+    .urgent {
+        background-color: #fee2e2;
+        color: var(--danger-color);
+    }
+    
+    .high {
+        background-color: #fef3c7;
+        color: var(--warning-color);
+    }
+    
+    .medium {
+        background-color: #dbeafe;
+        color: var(--info-color);
+    }
+    
+    .action-content {
+        padding-top: 0.5rem;
+    }
+    
+    .action-icon {
+        font-size: 1.2rem;
+        color: var(--primary-color);
+        margin-bottom: 0.75rem;
+    }
+    
+    .action-text {
+        font-size: 0.85rem;
+        color: #4b5563;
+        margin: 0.5rem 0;
+        line-height: 1.4;
+    }
+
+    /* Business Impact Section */
+    .impact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+    
+    .impact-card {
+        padding: 1.25rem;
+        border-radius: var(--border-radius);
+        background: white;
+        box-shadow: var(--box-shadow);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .impact-icon {
+        font-size: 1.5rem;
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .negative .impact-icon {
+        background: #fee2e2;
+        color: var(--danger-color);
+    }
+    
+    .positive .impact-icon {
+        background: #dcfce7;
+        color: var(--success-color);
+    }
+    
+    .neutral .impact-icon {
+        background: #e5e7eb;
+        color: #4b5563;
+    }
+    
+    .impact-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0.25rem 0;
+    }
+    
+    .impact-card p {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    /* Insights Cards */
+    .insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+
+    .insight-card {
+        padding: 1rem;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+    }
+    
+    .insight-badge {
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.3rem 0.6rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .critical {
+        background-color: #fee2e2;
+        color: var(--danger-color);
+    }
+    
+    .high {
+        background-color: #fef3c7;
+        color: var(--warning-color);
+    }
+    
+    .medium {
+        background-color: #dbeafe;
+        color: var(--info-color);
+    }
+
+    .insight-text {
+        font-size: 0.85rem;
+        color: #4b5563;
+        margin: 0.5rem 0;
+        line-height: 1.4;
+    }
+    
+    /* Hover Effects */
+    .hover-effect:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px rgba(31, 38, 135, 0.15);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 1200px) {
+        .metrics-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .impact-grid,
+        .action-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .dashboard-header h2 {
+            font-size: 1.3rem;
+        }
+    }
+        /* Add these new animation styles */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .impact-card {
+        opacity: 0; /* Start hidden */
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .impact-card:nth-child(1) { animation-delay: 0.1s; }
+    .impact-card:nth-child(2) { animation-delay: 0.3s; }
+    .impact-card:nth-child(3) { animation-delay: 0.5s; }
+
+    .impact-icon {
+        transition: all 0.3s ease;
+    }
+
+    .impact-card:hover .impact-icon {
+        animation: pulse 1s ease infinite;
+    }
+
+    .impact-value {
+        transition: all 0.3s ease;
+        transform-origin: left center;
+    }
+
+    .impact-card:hover .impact-value {
+        transform: scale(1.1);
+    }
+    /* Add this to your styles section */
+.metric-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 0.75rem;
+}
+
+.comparison-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.comparison-label {
+    font-size: 0.7rem;
+    color: #9ca3af;
+}
+
+.comparison-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 0.1rem;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+        // Existing hover effects...
+
+        // Animate impact cards when they come into view
+        const impactCards = document.querySelectorAll('.impact-card');
+        const impactObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                }
+            });
+        }, {threshold: 0.1});
+
+        impactCards.forEach(card => {
+            impactObserver.observe(card);
+        });
+
+        // Add number counting animation
+        const impactValues = document.querySelectorAll('.impact-value');
+        impactValues.forEach(valueEl => {
+            const originalText = valueEl.textContent;
+            const number = parseFloat(originalText.replace(/[^0-9.]/g, ''));
+            
+            if (!isNaN(number)) {
+                const suffix = originalText.replace(number, '');
+                let start = 0;
+                const duration = 2000;
+                const startTime = performance.now();
+                
+                const animateValue = (timestamp) => {
+                    const progress = Math.min((timestamp - startTime) / duration, 1);
+                    const currentValue = Math.floor(progress * number);
+                    valueEl.textContent = '$' + currentValue.toLocaleString() + suffix;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animateValue);
+                    }
+                };
+                
+                // Start animation when card is visible
+                const valueObserver = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting) {
+                        requestAnimationFrame(animateValue);
+                        valueObserver.unobserve(valueEl);
+                    }
+                });
+                
+                valueObserver.observe(valueEl);
+            }
+        });
+    });
+    async function fetchData() {
+    try {
+        const response = await fetch('/api/survival-data');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Fetched data:', data); // Add this for debugging
+        return data;
+    } catch (error) {
+        console.error('Fetch error:', error);
+        showErrorToast('Failed to fetch updated data');
+        return null;
+    }
+}
+</script>
+{% endblock %}

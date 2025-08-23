@@ -1,0 +1,622 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Modern, clean card styles */
+    .card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.25rem 1.5rem;
+        border-radius: 16px 16px 0 0 !important;
+    }
+
+    /* Table styles */
+    .customer-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    
+    .customer-table th {
+        font-weight: 600;
+        background: #f8f9fa;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .progress-thin {
+        height: 20px;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .badge-risk {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+        min-width: 70px;
+        text-align: center;
+    }
+    
+    .bg-danger { background-color: #ff6b6b; color: white; }
+    .bg-warning { background-color: #ffd166; color: #5e503f; }
+    .bg-success { background-color: #06d6a0; color: white; }
+    
+    /* Action button styles */
+    .action-btn {
+        transition: all 0.2s ease;
+        border-radius: 8px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .action-btn:active {
+        transform: translateY(0);
+    }
+
+    /* Enhanced Slide-in Panel */
+    .recommendations-panel {
+        position: fixed;
+        top: 0;
+        right: -450px;
+        width: 450px;
+        height: 100vh;
+        background: white;
+        box-shadow: -5px 0 30px rgba(0,0,0,0.15);
+        transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        z-index: 1050;
+        overflow-y: auto;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .recommendations-panel.open {
+        transform: translateX(-450px);
+    }
+
+    .panel-header {
+        padding: 25px;
+        background: linear-gradient(135deg, #4361ee, #3a56d4);
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .panel-title {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        font-size: 1.4rem;
+    }
+
+    .panel-title i {
+        margin-right: 12px;
+        font-size: 1.6rem;
+        color: rgba(255,255,255,0.9);
+    }
+
+    .close-panel-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        font-size: 20px;
+        cursor: pointer;
+        color: white;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .close-panel-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: rotate(90deg);
+    }
+
+    .panel-content {
+        padding: 25px;
+        flex: 1;
+        overflow-y: auto;
+        background: #f8fafc;
+    }
+
+    /* Recommendation items */
+    .recommendation-item {
+        padding: 20px;
+        margin-bottom: 15px;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border-left: 5px solid #4361ee;
+    }
+
+    .recommendation-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .recommendation-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: #4361ee;
+    }
+
+    .priority-1 { border-left-color: #f72585; }
+    .priority-2 { border-left-color: #f8961e; }
+    .priority-3 { border-left-color: #06d6a0; }
+
+    .recommendation-item i {
+        font-size: 1.4rem;
+        margin-right: 15px;
+        color: #4361ee;
+        float: left;
+    }
+
+    .recommendation-content {
+        overflow: hidden;
+    }
+
+    .recommendation-text {
+        font-weight: 500;
+        font-size: 1.05rem;
+        margin-bottom: 5px;
+        color: #2b2d42;
+    }
+
+    .recommendation-meta {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+
+    .recommendation-type {
+        font-size: 13px;
+        color: #6c757d;
+        background: #f1f3f9;
+        padding: 3px 8px;
+        border-radius: 4px;
+    }
+
+    .recommendation-priority {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .priority-1 .recommendation-priority { color: #f72585; }
+    .priority-2 .recommendation-priority { color: #f8961e; }
+    .priority-3 .recommendation-priority { color: #06d6a0; }
+
+    /* Action buttons */
+    .recommendation-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        opacity: 0;
+        height: 0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .recommendation-item.active .recommendation-actions {
+        opacity: 1;
+        height: auto;
+        margin-top: 15px;
+    }
+
+    .action-button {
+        flex: 1;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .action-button i {
+        font-size: 14px;
+        margin-right: 5px;
+    }
+
+    .action-button.primary {
+        background: #4361ee;
+        color: white;
+    }
+
+    .action-button.secondary {
+        background: #f1f3f9;
+        color: #495057;
+    }
+
+    .action-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Loading animation */
+    .loading-spinner {
+        display: inline-block;
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(67, 97, 238, 0.1);
+        border-radius: 50%;
+        border-top-color: #4361ee;
+        animation: spin 1s ease-in-out infinite;
+        margin: 50px auto;
+        display: block;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Pulse animation for loading cards */
+    .loading-card {
+        background: #f1f3f9;
+        border-radius: 12px;
+        height: 100px;
+        margin-bottom: 15px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .loading-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #dee2e6;
+        margin-bottom: 15px;
+    }
+
+    .empty-state p {
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .recommendations-panel {
+            width: 100%;
+            right: -100%;
+        }
+        
+        .recommendations-panel.open {
+            transform: translateX(-100%);
+        }
+        
+        .panel-header {
+            padding: 20px;
+        }
+        
+        .panel-content {
+            padding: 20px;
+        }
+        
+        .recommendation-item {
+            padding: 15px;
+        }
+    }
+
+    /* Custom scrollbar for panel */
+    .panel-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .panel-content::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.05);
+    }
+
+    .panel-content::-webkit-scrollbar-thumb {
+        background: rgba(67, 97, 238, 0.3);
+        border-radius: 4px;
+    }
+</style>
+
+<div class="container-fluid px-4">
+    <!-- Customer Recommendations Card -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-users me-2"></i>Customer Recommendations</h5>
+        </div>
+        <div class="card-body">
+            <!-- Filters -->
+            <form id="filterForm" method="get" action="{{ url_for('recommendations') }}">
+                <div class="row mb-4 g-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control filter-input" id="searchInput" name="search" 
+                               placeholder="Search customers..." value="{{ search or '' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select filter-input" id="riskFilter" name="risk">
+                            <option value="">All Risk Levels</option>
+                            <option value="High" {% if risk_filter == 'High' %}selected{% endif %}>High Risk</option>
+                            <option value="Medium" {% if risk_filter == 'Medium' %}selected{% endif %}>Medium Risk</option>
+                            <option value="Low" {% if risk_filter == 'Low' %}selected{% endif %}>Low Risk</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select filter-input" id="contractFilter" name="contract">
+                            <option value="">All Contracts</option>
+                            <option value="Month-to-month" {% if contract_filter == 'Month-to-month' %}selected{% endif %}>Month-to-month</option>
+                            <option value="One year" {% if contract_filter == 'One year' %}selected{% endif %}>1-Year</option>
+                            <option value="Two year" {% if contract_filter == 'Two year' %}selected{% endif %}>2-Year</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn action-btn w-100 btn-primary">
+                            <i class="fas fa-filter me-1"></i>Filter
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Customer Table -->
+            <div class="table-responsive">
+                <table class="table customer-table">
+                    <thead>
+                        <tr>
+                            <th>Customer ID</th>
+                            <th>Tenure</th>
+                            <th>Monthly</th>
+                            <th>Risk</th>
+                            <th>Churn %</th>
+                            <th>Critical</th>
+                            <th>12-Mo</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                        <tr>
+                            <td data-label="Customer ID"><strong>{{ customer.customerID }}</strong></td>
+                            <td data-label="Tenure">{{ customer.tenure }} mo</td>
+                            <td data-label="Monthly">${{ "%.2f"|format(customer.MonthlyCharges) }}</td>
+                            <td data-label="Risk">
+                                <span class="badge-risk bg-{% if customer.risk_level == 'High' %}danger{% elif customer.risk_level == 'Medium' %}warning{% else %}success{% endif %}">
+                                    {{ customer.risk_level }}
+                                </span>
+                            </td>
+                            <td data-label="Churn %">
+                                <div class="progress progress-thin">
+                                    <div class="progress-bar bg-{% if customer.churn_probability > 0.7 %}danger{% elif customer.churn_probability > 0.4 %}warning{% else %}success{% endif %}" 
+                                         style="width: {{ customer.churn_probability * 100 }}%">
+                                        {{ "%.0f"|format(customer.churn_probability * 100) }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td data-label="Critical">
+                                <span class="badge-risk bg-{% if customer.critical_month < 4 %}danger{% elif customer.critical_month < 7 %}warning{% else %}success{% endif %}">
+                                    {{ "%.1f"|format(customer.critical_month) }} mo
+                                </span>
+                            </td>
+                            <td data-label="12-Mo">
+                                {{ "%.0f"|format(customer['12mo_survival'] * 100) }}%
+                            </td>
+                            <td data-label="Actions">
+                                <button class="btn btn-sm btn-outline-primary action-btn view-recs-btn" data-customer-id="{{ customer.customerID }}" data-customer-name="{{ customer.customerName or customer.customerID }}">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if current_page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('recommendations', page=current_page-1, search=search, risk=risk_filter, contract=contract_filter) }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">{{ current_page }}</span>
+                    </li>
+                    
+                    {% if current_page < total_pages %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('recommendations', page=current_page+1, search=search, risk=risk_filter, contract=contract_filter) }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Recommendations Panel -->
+<div id="recommendationsPanel" class="recommendations-panel">
+    <div class="panel-header">
+        <button class="close-panel-btn">&times;</button>
+        <h3 class="panel-title"><i class="fas fa-lightbulb"></i> <span id="panelCustomerTitle">Recommendations</span></h3>
+    </div>
+    <div class="panel-content" id="panelRecommendations">
+        <!-- Content will be loaded here -->
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Panel open/close functionality
+    $(document).on('click', '.view-recs-btn', function() {
+        const customerId = $(this).data('customer-id');
+        const customerName = $(this).data('customer-name');
+        const customers = JSON.parse('{{ customers|tojson|safe }}');
+        const customer = customers.find(c => c.customerID === customerId);
+        
+        if (!customer) {
+            console.error('Customer not found:', customerId);
+            return;
+        }
+        
+        // Update panel title with customer name
+        $('#panelCustomerTitle').text(`Recommendations for ${customerName}`);
+        
+        // Show loading state
+        $('#panelRecommendations').html(`
+            <div class="loading-spinner"></div>
+            <div class="loading-card"></div>
+            <div class="loading-card"></div>
+            <div class="loading-card"></div>
+        `);
+        
+        $('#recommendationsPanel').addClass('open');
+        
+        // Simulate loading delay (replace with actual API call timing)
+        setTimeout(() => {
+            renderCustomerRecommendations(customer);
+        }, 600);
+    });
+    
+    // Close panel handlers
+    $('.close-panel-btn').click(closePanel);
+    
+    // Close when clicking outside panel
+    $(document).mouseup(function(e) {
+        const panel = $("#recommendationsPanel");
+        if (!panel.is(e.target) && panel.has(e.target).length === 0 && panel.hasClass('open')) {
+            closePanel();
+        }
+    });
+    
+    // Keyboard escape key to close panel
+    $(document).keyup(function(e) {
+        if (e.key === "Escape" && $('#recommendationsPanel').hasClass('open')) {
+            closePanel();
+        }
+    });
+    
+    // Click handler for recommendation items
+    $(document).on('click', '.recommendation-item', function() {
+        $(this).toggleClass('active').siblings('.recommendation-item').removeClass('active');
+    });
+    
+    function closePanel() {
+        $('#recommendationsPanel').removeClass('open');
+    }
+    
+    function renderCustomerRecommendations(customer) {
+        let content = '';
+        
+        // Add recommendations if they exist
+        if (customer.recommendations && customer.recommendations.length > 0) {
+            customer.recommendations.forEach((rec, index) => {
+                const priorityClass = rec.priority === 1 ? 'priority-1' : 
+                                  rec.priority === 2 ? 'priority-2' : 'priority-3';
+                const priorityText = rec.priority === 1 ? 'High' : rec.priority === 2 ? 'Medium' : 'Low';
+                
+                content += `
+                    <div class="recommendation-item ${priorityClass}">
+                        <i class="fas fa-${rec.icon || 'info-circle'}"></i>
+                        <div class="recommendation-content">
+                            <div class="recommendation-text">${rec.text || 'No description'}</div>
+                            <div class="recommendation-meta">
+                                <span class="recommendation-type">${rec.type || 'General recommendation'}</span>
+                                <span class="recommendation-priority">Priority: ${priorityText}</span>
+                            </div>
+                        </div>
+                        <div class="recommendation-actions">
+                            <button class="action-button secondary" onclick="handleRecAction('dismiss', ${index})">
+                                <i class="fas fa-times"></i> Dismiss
+                            </button>
+                            <button class="action-button primary" onclick="handleRecAction('implement', ${index})">
+                                <i class="fas fa-check"></i> Mark as Done
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            content = `
+                <div class="empty-state">
+                    <i class="fas fa-info-circle"></i>
+                    <p>No recommendations available for this customer.</p>
+                </div>
+            `;
+        }
+        
+        // Update panel content
+        $('#panelRecommendations').html(content);
+    }
+});
+
+// These would be connected to actual backend actions
+function handleRecAction(action, index) {
+    console.log(`${action} recommendation ${index}`);
+    // Here you would make an AJAX call to update the recommendation status
+    alert(`Action: ${action} on recommendation ${index + 1}`);
+    
+    // Close the actions panel
+    $(`.recommendation-item`).removeClass('active');
+}
+</script>
+{% endblock %}
