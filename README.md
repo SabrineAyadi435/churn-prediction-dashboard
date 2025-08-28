@@ -34,15 +34,15 @@ The dashboard consists of four main tabs:
 ---
 
 ## 📂 Repository Structure  
-├── app.py # Flask web application
-├── models/ # Saved classification & survival models
-├── static/ # CSS, JS, and images for the dashboard
-├── templates/ # HTML templates for Flask
-├── data/ # Sample data (if included)
-├── notebooks/ # Jupyter notebooks (EDA, training)
-├── requirements.txt # Python dependencies
-├── README.md # Project documentation
-└── report/ # Final project report and annexes
+- app.py # Flask web application
+- models/ # Saved classification & survival models
+- static/ # CSS, JS, and images for the dashboard
+- templates/ # HTML templates for Flask
+-  data/ # Sample data (if included)
+-   notebooks/ # Jupyter notebooks (EDA, training)
+- quirements.txt # Python dependencies
+-  README.md # Project documentation
+
 
 ---
 
