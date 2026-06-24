@@ -1,6 +1,6 @@
-# 📊 Churn Prediction & Survival Analysis Dashboard  
+#  Churn Prediction & Survival Analysis Dashboard  
 
-## 📌 Project Overview  
+## Project Overview  
 This project focuses on predicting customer churn using **classification models** and estimating customer retention over time with **survival analysis models**.  
 Both models are deployed in a **Flask-based interactive dashboard** where users can upload customer data and view predictions, insights, and recommendations.  
 
@@ -12,7 +12,7 @@ The dashboard consists of four main tabs:
 
 ---
 
-## 🚀 Features  
+##  Features  
 - Upload customer data in **CSV format**  
 - Get **real-time predictions** from pre-trained models  
 - Visualize churn drivers and survival metrics  
@@ -33,7 +33,7 @@ The dashboard consists of four main tabs:
 
 ---
 
-## 📂 Repository Structure  
+## Repository Structure  
 - app.py # Flask web application
 - models/ # Saved classification & survival models
 - static/ # CSS, JS, and images for the dashboard
@@ -46,27 +46,27 @@ The dashboard consists of four main tabs:
 
 ---
 
-## ⚙️ Installation & Usage  
+##  Installation & Usage  
 
-### 1️⃣ Clone the repository  
+### 1 Clone the repository  
 ```bash
 git clone https://github.com/<your-username>/<repo-name>.git
 cd <repo-name>
 ```
-### 2️⃣ Create a virtual environment
+### 2️ Create a virtual environment
 ```bash
 python -m venv venv
 source venv/bin/activate   # Mac/Linux
 venv\Scripts\activate      # Windows
 ```
-### 3️⃣ Install dependencies
+### 3️ Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
-### 4️⃣ Run the Flask app
+### 4️ Run the Flask app
 ```bash
 python app.py
 ```
-### 5️⃣ Open in browser
+### 5️ Open in browser
 http://127.0.0.1:5000
 
